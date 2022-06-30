@@ -19,6 +19,9 @@
     <py-env>
         - numpy
         - pandas
+        - matplotlib
+        - seaborn
+        - scikit-learn
         - panel==0.13.1a2
     </py-env>
 </head>
@@ -30,33 +33,59 @@
           
                 <div id="fileinput"></div>
                 <div id="upload"></div>
-                <div id="table"></div>
+                <div id="to_predict"></div>
+                <div id="op"></div>
+
+                <p id="regression-op"></div>
             
         
      
     <py-script>
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
 import asyncio
 import panel as pn
-import pandas as pd
 from panel.io.pyodide import show
+import numpy as np
+from sklearn.linear_model import LinearRegression
 
-fileInput = pn.widgets.FileInput(accept='.csv')
-uploadButton = pn.widgets.Button(name='Upload', button_type = 'primary')
-
-table = pn.widgets.Tabulator(pagination='remote', page_size=10)
-
-document.getElementById('table').style.display = 'none'
+fileInput = pn.widgets.FileInput(accept=".csv")
+uploadButton = pn.widgets.Button(name="Show Prediction", button_type = 'primary')
+to_predict = pn.widgets.Spinner(name="Total Installs", value=500, step=50, start=50)
 
 def process_file(event):
     if fileInput.value is not None:
-        table.value = pd.read_csv(io.BytesIO(fileInput.value))
-        document.getElementById('table').style.display = 'block'
+        data = pd.read_csv(io.BytesIO(fileInput.value))
+        y = data[['arpi']]  #change column name
+        X = data[['total_installs']]  #change column name
+        
+        # regression part
+        X = X 
+        y = y 
+        reg = LinearRegression().fit(X, y)
+        reg.score(X, y)
 
-uploadButton.on_click(process_file)
+        print("regression coefficient = ", reg.coef_)
+
+        predicted = reg.predict(np.array(to_predict.value).reshape(1, -1))
+
+        reg_op = Element('regression-op')
+        reg_op.write(predicted)
+
+         
+
+
+        
+
 
 await show(fileInput, 'fileinput')
 await show(uploadButton, 'upload')
-await show(table, 'table')
+await show(to_predict, 'to_predict')
+uploadButton.on_click(process_file)
+
+
+
     </py-script>
 </body>
 
